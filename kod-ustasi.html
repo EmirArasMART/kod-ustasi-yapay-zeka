@@ -1,0 +1,530 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Kod Ustası</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Familjen+Grotesk:wght@500;600;700&family=Instrument+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+<style>
+/* Yerleşim: solda istek paneli, sağda çıktı (plan → dosyalar → inceleme). Telefonda alt alta. */
+:root{
+  --bg:#f4f5f8; --surface:#ffffff; --sunken:#eceef3; --line:#d8dbe4; --fg:#1a1d29; --muted:#5b6175;
+  --accent:#b25c05; --accent-ink:#ffffff; --accent-soft:#fbe9d4; --ok:#1d7548; --warn:#b3261e; --code-bg:#f2f3f7;
+  --sx-kw:#7a3db8; --sx-str:#1d7548; --sx-num:#b25c05; --sx-com:#878da1; --sx-fn:#1d5fbf; --sx-type:#a3337a;
+  --f-display:"Familjen Grotesk","Segoe UI",system-ui,sans-serif;
+  --f-body:"Instrument Sans","Segoe UI",system-ui,sans-serif;
+  --f-mono:"JetBrains Mono",ui-monospace,"Cascadia Mono",Consolas,monospace;
+  color-scheme:light;
+}
+@media (prefers-color-scheme:dark){:root{
+  --bg:#11131b; --surface:#191c27; --sunken:#0d0f16; --line:#2a2e3d; --fg:#e6e8ef; --muted:#9298ab;
+  --accent:#f0a64a; --accent-ink:#1b1205; --accent-soft:#3a2a15; --ok:#5cc98f; --warn:#ff8a80; --code-bg:#0e1017;
+  --sx-kw:#c49bff; --sx-str:#8fd6a6; --sx-num:#f0a64a; --sx-com:#6b7186; --sx-fn:#7fb4ff; --sx-type:#ff9cc8; color-scheme:dark}}
+
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+body{margin:0;background:var(--bg);color:var(--fg);font:15px/1.55 var(--f-body)}
+.wrap{max-width:1280px;margin:0 auto;padding:20px 16px 40px;display:grid;gap:20px}
+header.top{display:flex;align-items:flex-end;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.brand{display:flex;align-items:center;gap:12px}
+.mark{width:40px;height:40px;border-radius:10px;background:var(--accent);color:var(--accent-ink);display:grid;place-items:center;font:700 17px var(--f-mono);letter-spacing:-.04em}
+h1{font:700 26px/1.1 var(--f-display);margin:0;letter-spacing:-.02em}
+.sub{color:var(--muted);font-size:14px;margin:2px 0 0}
+.badge{font:500 12px var(--f-mono);color:var(--muted);border:1px solid var(--line);border-radius:999px;padding:4px 10px}
+.badge.on{color:var(--ok);border-color:var(--ok)}
+
+.grid{display:grid;grid-template-columns:minmax(0,380px) minmax(0,1fr);gap:20px;align-items:start}
+@media (max-width:900px){.grid{grid-template-columns:minmax(0,1fr)}}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:18px;display:grid;gap:16px;min-width:0}
+.label{font:600 11px var(--f-body);letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin:0 0 6px;display:block}
+textarea,select,input[type=text]{width:100%;font:inherit;color:var(--fg);background:var(--sunken);border:1px solid var(--line);border-radius:10px;padding:10px 12px}
+textarea{min-height:140px;resize:vertical;font-size:14.5px}
+textarea:focus,select:focus,input:focus,button:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
+.hint{font-size:12.5px;color:var(--muted);margin:6px 0 0}
+.check{display:flex;gap:10px;align-items:flex-start;font-size:14px;cursor:pointer}
+.check input{margin-top:3px;accent-color:var(--accent);width:16px;height:16px}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.chip{font:500 12.5px var(--f-body);border:1px solid var(--line);background:transparent;color:var(--fg);border-radius:999px;padding:5px 10px;cursor:pointer}
+.chip:hover{border-color:var(--accent);color:var(--accent)}
+.actions{display:flex;gap:8px}
+.btn{font:600 14px var(--f-body);border-radius:10px;padding:11px 16px;cursor:pointer;border:1px solid var(--line);background:var(--surface);color:var(--fg);display:inline-flex;align-items:center;gap:8px;justify-content:center}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:var(--accent-ink);flex:1}
+.btn:disabled{opacity:.5;cursor:not-allowed}
+.btn.small{padding:6px 10px;font-size:12.5px;border-radius:8px}
+kbd{font:500 11px var(--f-mono);opacity:.75}
+
+.load{display:grid;gap:6px}
+.bar{height:8px;border-radius:99px;background:var(--sunken);overflow:hidden;border:1px solid var(--line)}
+.bar i{display:block;height:100%;width:0;background:var(--accent);transition:width .3s}
+.loadtxt{font:12px/1.4 var(--f-mono);color:var(--muted);word-break:break-word}
+
+.steps{list-style:none;margin:0;padding:0;display:grid;gap:8px}
+.step{display:grid;grid-template-columns:22px 1fr auto;gap:10px;align-items:center;font-size:13.5px}
+.dot{width:22px;height:22px;border-radius:50%;border:1.5px solid var(--line);display:grid;place-items:center;font:600 11px var(--f-mono);color:var(--muted)}
+.step[data-s="run"] .dot{border-color:var(--accent);color:var(--accent);animation:pulse 1.2s ease-in-out infinite}
+.step[data-s="done"] .dot{background:var(--ok);border-color:var(--ok);color:var(--surface)}
+.step[data-s="err"] .dot{background:var(--warn);border-color:var(--warn);color:var(--surface)}
+.step[data-s="skip"]{opacity:.5}
+.step .st{font:500 12px var(--f-mono);color:var(--muted)}
+@keyframes pulse{50%{box-shadow:0 0 0 4px var(--accent-soft)}}
+@media (prefers-reduced-motion:reduce){.step .dot,.cursor::after{animation:none!important}}
+
+.out{display:grid;gap:14px;min-width:0}
+.outhead{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
+.outhead h2{font:600 18px var(--f-display);margin:0;text-wrap:balance}
+.tag{font:600 11px var(--f-body);letter-spacing:.06em;text-transform:uppercase;background:var(--accent-soft);color:var(--accent);padding:3px 8px;border-radius:6px}
+.boxes{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+@media (max-width:640px){.boxes{grid-template-columns:1fr}}
+.note{background:var(--sunken);border-radius:10px;padding:12px 14px;font-size:13.5px;min-width:0}
+.note h3{font:600 11px var(--f-body);letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin:0 0 6px}
+.note ul{margin:0;padding-left:18px}
+.note li{margin:2px 0}
+.note.review{border-left:3px solid var(--ok)}
+.note.review.fixed{border-left-color:var(--accent)}
+.note code{font:13px var(--f-mono)}
+
+.editor{border:1px solid var(--line);border-radius:12px;overflow:hidden;background:var(--code-bg);min-width:0}
+.tabs{display:flex;align-items:stretch;border-bottom:1px solid var(--line);background:var(--surface);overflow-x:auto}
+.tab{font:500 13px var(--f-mono);border:0;border-right:1px solid var(--line);background:transparent;color:var(--muted);padding:10px 14px;cursor:pointer;white-space:nowrap}
+.tab[aria-selected="true"]{color:var(--fg);background:var(--code-bg);box-shadow:inset 0 2px 0 var(--accent)}
+.tab .lc{opacity:.6;margin-left:6px;font-size:11px}
+.tools{display:flex;gap:6px;align-items:center;margin-left:auto;padding:6px 8px;flex-shrink:0}
+pre.code{margin:0;padding:16px 18px;overflow:auto;max-height:620px;font:13.5px/1.6 var(--f-mono);tab-size:4;color:var(--fg)}
+pre.code code{font:inherit;white-space:pre}
+.cursor::after{content:"▍";color:var(--accent);animation:blink 1s steps(2) infinite}
+@keyframes blink{50%{opacity:0}}
+.hljs-keyword,.hljs-built_in,.hljs-literal,.hljs-selector-tag{color:var(--sx-kw)}
+.hljs-string,.hljs-regexp,.hljs-template-string{color:var(--sx-str)}
+.hljs-number,.hljs-symbol,.hljs-bullet{color:var(--sx-num)}
+.hljs-comment,.hljs-quote,.hljs-meta{color:var(--sx-com);font-style:italic}
+.hljs-title,.hljs-title.function_,.hljs-section,.hljs-name{color:var(--sx-fn)}
+.hljs-type,.hljs-title.class_,.hljs-attr,.hljs-attribute,.hljs-variable.language_,.hljs-params{color:var(--sx-type)}
+.hljs-tag{color:var(--muted)}
+iframe.preview{width:100%;height:560px;border:0;background:#fff;display:block}
+.empty{padding:40px 18px;text-align:center;color:var(--muted);font-size:14px}
+.refine{display:grid;grid-template-columns:1fr auto;gap:8px}
+@media (max-width:480px){.refine{grid-template-columns:1fr}}
+.msg{font-size:13.5px;padding:10px 12px;border-radius:10px;background:var(--accent-soft);color:var(--fg);white-space:pre-line}
+.msg.err{background:color-mix(in srgb,var(--warn) 14%,transparent)}
+.ver{width:auto;padding:6px 10px;font-size:13px}
+.toast{position:fixed;left:50%;bottom:20px;transform:translateX(-50%);background:var(--fg);color:var(--bg);font-size:13px;padding:8px 14px;border-radius:8px;z-index:20}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <div class="brand">
+      <div class="mark" aria-hidden="true">&lt;/&gt;</div>
+      <div>
+        <h1>Kod Ustası</h1>
+        <p class="sub">Ücretsiz, bilgisayarında çalışan yapay zeka. Planlar, yazar, kendi kodunu kontrol eder.</p>
+      </div>
+    </div>
+    <span class="badge" id="engineBadge">Model yüklenmedi</span>
+  </header>
+
+  <div class="grid">
+    <section class="panel" aria-label="İstek">
+      <div>
+        <label class="label" for="model">Yapay zeka modeli</label>
+        <select id="model">
+          <option value="Qwen2.5-Coder-1.5B-Instruct-q4f16_1-MLC">Qwen2.5-Coder 1.5B · hafif, en hızlı (~1,6 GB bellek)</option>
+          <option value="Qwen2.5-Coder-3B-Instruct-q4f16_1-MLC" selected>Qwen2.5-Coder 3B · önerilen (~2,5 GB bellek)</option>
+          <option value="Qwen3.5-4B-q4f16_1-MLC">Qwen3.5 4B · daha yeni, genel model (~3-4 GB bellek)</option>
+          <option value="Qwen2.5-Coder-7B-Instruct-q4f16_1-MLC">Qwen2.5-Coder 7B · en güçlü, güçlü ekran kartı ister (~5 GB)</option>
+        </select>
+        <p class="hint" id="modelHint">İlk seferde model internetten bir kez indirilir, sonra tarayıcıda saklanır ve internetsiz çalışır.</p>
+      </div>
+      <div class="load" id="loadBox" hidden>
+        <div class="bar"><i id="loadBar"></i></div>
+        <div class="loadtxt" id="loadTxt"></div>
+      </div>
+
+      <div>
+        <label class="label" for="prompt">Ne yazayım?</label>
+        <textarea id="prompt" placeholder="Örn: Tkinter ile geçmişi gösteren bir hesap makinesi..."></textarea>
+        <div class="chips" id="examples"></div>
+      </div>
+
+      <div>
+        <label class="label" for="lang">Dil</label>
+        <select id="lang">
+          <option value="">Otomatik seç</option>
+          <option>Python</option><option>JavaScript</option><option>TypeScript</option>
+          <option value="HTML/CSS/JS (tek .html dosyası)">HTML sayfası</option>
+          <option>Kotlin</option><option>Java</option><option>C++</option><option>C#</option>
+          <option>Go</option><option>Rust</option><option>SQL</option><option>Bash</option>
+          <option value="Arduino (C++)">Arduino</option>
+        </select>
+      </div>
+
+      <label class="check"><input type="checkbox" id="selfReview" checked>
+        <span>Kendi kodunu kontrol etsin<br><span class="hint" style="margin:0">Yazdıktan sonra hata arar, bulursa düzeltir. Süreyi yaklaşık ikiye katlar.</span></span>
+      </label>
+
+      <div class="actions">
+        <button class="btn primary" id="runBtn" type="button">Kodu yaz <kbd>Ctrl+Enter</kbd></button>
+        <button class="btn" id="stopBtn" type="button" hidden>Durdur</button>
+      </div>
+
+      <div>
+        <span class="label">Aşamalar</span>
+        <ol class="steps">
+          <li class="step" data-k="write" data-s="idle"><span class="dot">1</span><span>Planla ve yaz</span><span class="st"></span></li>
+          <li class="step" data-k="review" data-s="idle"><span class="dot">2</span><span>Kontrol et ve düzelt</span><span class="st"></span></li>
+        </ol>
+      </div>
+      <div id="msg" class="msg" hidden></div>
+    </section>
+
+    <section class="out" aria-label="Çıktı">
+      <div class="outhead">
+        <h2 id="outTitle">Sayı tahmin oyunu</h2>
+        <div style="display:flex;gap:8px;align-items:center">
+          <span class="tag" id="sampleTag">Örnek çıktı</span>
+          <select id="versions" class="ver" aria-label="Sürüm" hidden></select>
+        </div>
+      </div>
+      <div class="boxes">
+        <div class="note" id="planBox"><h3>Plan</h3><div id="plan"></div></div>
+        <div class="note" id="notesBox"><h3>Nasıl çalıştırılır</h3><div id="notes"></div></div>
+      </div>
+      <div class="editor">
+        <div class="tabs" role="tablist" id="tabs"></div>
+        <div id="viewer"></div>
+      </div>
+      <div class="note review" id="reviewBox" hidden><h3>Kod incelemesi</h3><div id="review"></div></div>
+      <div>
+        <label class="label" for="refineIn">Değişiklik iste</label>
+        <div class="refine">
+          <input type="text" id="refineIn" placeholder="Örn: skor tablosu ekle, renkleri değiştir...">
+          <button class="btn" id="refineBtn" type="button">Güncelle</button>
+        </div>
+      </div>
+    </section>
+  </div>
+</div>
+<div class="toast" id="toast" hidden></div>
+
+<script type="module">
+const WEBLLM_URL = "https://esm.run/@mlc-ai/web-llm@0.2.85";
+const $ = id => document.getElementById(id);
+
+const EXAMPLES = [
+  ["Hesap makinesi", "Python Tkinter ile, klavyeden de kullanılabilen, geçmiş işlemleri gösteren bir hesap makinesi yaz."],
+  ["Yılan oyunu", "Tek HTML dosyasında, skoru ve gittikçe artan hızı olan yılan oyunu yaz."],
+  ["Arduino robot", "Arduino Uno, HC-SR04 mesafe sensörü ve L298N motor sürücüsüyle engelden kaçan robot kodu yaz."],
+  ["Kotlin sınıf", "Kotlin ile bir öğrenci not sistemi yaz: öğrenci ekle, not gir, ortalama ve harf notu hesapla."],
+  ["CSV analizi", "Bir CSV dosyasını okuyup sütun istatistiklerini yazdıran ve matplotlib ile grafik çizen Python betiği yaz."]
+];
+const EXT_LANG = {py:"python",js:"javascript",mjs:"javascript",ts:"typescript",tsx:"typescript",jsx:"javascript",html:"xml",htm:"xml",xml:"xml",css:"css",kt:"kotlin",kts:"kotlin",java:"java",cpp:"cpp",cc:"cpp",h:"cpp",hpp:"cpp",ino:"cpp",c:"c",cs:"csharp",go:"go",rs:"rust",sql:"sql",sh:"bash",bash:"bash",json:"json",yml:"yaml",yaml:"yaml",md:"markdown",php:"php",rb:"ruby",swift:"swift"};
+const FENCE_EXT = {python:"py",py:"py",javascript:"js",js:"js",typescript:"ts",ts:"ts",html:"html",css:"css",kotlin:"kt",kt:"kt",java:"java",cpp:"cpp","c++":"cpp",arduino:"ino",ino:"ino",c:"c",csharp:"cs","c#":"cs",cs:"cs",go:"go",rust:"rs",rs:"rs",sql:"sql",bash:"sh",sh:"sh",shell:"sh",json:"json",xml:"xml",yaml:"yml"};
+
+const SAMPLE = {
+  sample:true, label:"Örnek", prompt:"", title:"Sayı tahmin oyunu", raw:"",
+  plan:"- 1-100 arası rastgele sayı tut\n- Kullanıcıdan tahmin al, geçersiz girişleri yakala\n- Büyük/küçük ipucu ver, deneme sayısını tut\n- Tekrar oynama seçeneği sun",
+  notes:"- Python 3.8+ yeter, ek kurulum yok\n- Çalıştır: `python tahmin.py`",
+  review:"", fixed:false,
+  files:[{name:"tahmin.py",done:true,content:`import random
+
+
+def tahmin_al(alt: int, ust: int) -> int:
+    """Geçerli bir sayı girilene kadar kullanıcıdan tahmin ister."""
+    while True:
+        giris = input(f"{alt}-{ust} arası tahminin: ").strip()
+        try:
+            sayi = int(giris)
+        except ValueError:
+            print("Lütfen bir tam sayı gir.")
+            continue
+        if alt <= sayi <= ust:
+            return sayi
+        print(f"Sayı {alt} ile {ust} arasında olmalı.")
+
+
+def oyna(alt: int = 1, ust: int = 100) -> int:
+    hedef = random.randint(alt, ust)
+    deneme = 0
+    while True:
+        tahmin = tahmin_al(alt, ust)
+        deneme += 1
+        if tahmin < hedef:
+            print("Daha büyük bir sayı dene.")
+        elif tahmin > hedef:
+            print("Daha küçük bir sayı dene.")
+        else:
+            print(f"Bildin! {deneme} denemede buldun.")
+            return deneme
+
+
+if __name__ == "__main__":
+    en_iyi = None
+    while True:
+        skor = oyna()
+        if en_iyi is None or skor < en_iyi:
+            en_iyi = skor
+            print("Yeni rekor!")
+        print(f"En iyi skorun: {en_iyi} deneme")
+        if input("Tekrar oynamak ister misin? (e/h): ").strip().lower() != "e":
+            break
+`}]
+};
+
+let versions=[SAMPLE], cur=0, activeFile=0, showPreview=false;
+let webllm=null, engine=null, loadedModel=null, busy=false, streaming=false, stopped=false;
+
+/* ---------- küçük yardımcılar ---------- */
+const extOf = n => (n.split(".").pop()||"").toLowerCase();
+const esc = s => s.replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+function toast(t){const el=$("toast");el.textContent=t;el.hidden=false;clearTimeout(toast.t);toast.t=setTimeout(()=>el.hidden=true,2200)}
+function showMsg(t,err){const m=$("msg");if(!t){m.hidden=true;return}m.textContent=t;m.className="msg"+(err?" err":"");m.hidden=false}
+function setStep(k,s,txt){const li=document.querySelector(`.step[data-k="${k}"]`);li.dataset.s=s;li.querySelector(".st").textContent=txt||"";li.querySelector(".dot").textContent=s==="done"?"✓":s==="err"?"!":(k==="write"?"1":"2")}
+function mdList(text,el){
+  el.textContent="";
+  const lines=(text||"").split("\n").map(l=>l.trim()).filter(l=>l&&!/^#+\s*$/.test(l)&&!/^(\*\*)?(plan|notlar|inceleme|notes|review)(\*\*)?\s*:?\s*(\*\*)?$/i.test(l.replace(/^#+\s*/,"")));
+  if(!lines.length){el.innerHTML='<span style="color:var(--muted)">—</span>';return}
+  const ul=document.createElement("ul");
+  for(const l of lines){
+    const li=document.createElement("li");
+    const t=l.replace(/^#+\s*/,"").replace(/^[-*•]\s*/,"").replace(/^\d+[.)]\s*/,"").replace(/\*\*/g,"").replace(/^(plan|notlar|inceleme)\s*:\s*/i,"");
+    if(!t)continue;
+    t.split(/(`[^`]+`)/).forEach(p=>{if(p.length>2&&p.startsWith("`")&&p.endsWith("`")){const c=document.createElement("code");c.textContent=p.slice(1,-1);li.append(c)}else li.append(p)});
+    ul.append(li);
+  }
+  el.append(ul);
+}
+
+/* ---------- model çıktısını ayrıştır: "Dosya: ad" + ``` kod bloğu ``` ---------- */
+function parse(text){
+  text=text.replace(/<think>[\s\S]*?(<\/think>|$)/g,"");
+  const files=[], re=/```([\w+#.-]*)[^\n]*\n([\s\S]*?)(```|$)/g;
+  let m,last=0,pre="",i=0;
+  while((m=re.exec(text))){
+    const before=text.slice(last,m.index);
+    if(i===0)pre=before;
+    let name=null;
+    const cands=before.match(/[\w./-]+\.[A-Za-z][A-Za-z0-9]{0,5}\b/g);
+    if(cands)name=cands[cands.length-1].replace(/^[./]+/,"");
+    if(!name||/^\d/.test(name)){const ext=FENCE_EXT[(m[1]||"").toLowerCase()]||"txt";name=`kod${i?i+1:""}.${ext}`}
+    while(files.some(f=>f.name===name))name=name.replace(/(\.\w+)$/,"_2$1");
+    files.push({name,content:m[2].replace(/\s+$/,"")+"\n",done:m[3]==="```"});
+    last=re.lastIndex; i++;
+    if(m[3]!=="```")break;
+    if(re.lastIndex===m.index)re.lastIndex++;
+  }
+  if(!files.length)pre=text;
+  const after=files.length?text.slice(last):"";
+  // plan bölümünden "Dosya: x" satırlarını temizle
+  const clean=s=>s.split("\n").filter(l=>!/^\s*(\*\*)?(dosya|file)\s*:/i.test(l)).join("\n");
+  return {plan:clean(pre).trim(), notes:clean(after).trim(), files};
+}
+function mergeFiles(base,incoming){
+  const out=base.map(f=>({...f}));
+  for(const f of incoming){const i=out.findIndex(x=>x.name===f.name);if(i>=0)out[i]={...f};else out.push({...f})}
+  return out;
+}
+const filesToText = files => files.map(f=>`Dosya: ${f.name}\n\`\`\`${EXT_LANG[extOf(f.name)]||""}\n${f.content.replace(/\s+$/,"")}\n\`\`\``).join("\n\n");
+
+/* ---------- ekrana çiz ---------- */
+let raf=false;
+function render(){if(raf)return;raf=true;requestAnimationFrame(()=>{raf=false;draw()})}
+function draw(){
+  const v=versions[cur];
+  $("outTitle").textContent=v.title||"Kod";
+  $("sampleTag").hidden=!v.sample;
+  mdList(v.plan,$("plan")); mdList(v.notes,$("notes"));
+  $("planBox").hidden=!v.plan&&!streaming; $("notesBox").hidden=!v.notes&&!streaming;
+  const rb=$("reviewBox"); rb.hidden=!v.review; rb.classList.toggle("fixed",!!v.fixed); if(v.review)mdList(v.review,$("review"));
+  const sel=$("versions"), real=versions.filter(x=>!x.sample);
+  sel.hidden=real.length<2;
+  sel.innerHTML=versions.map((x,i)=>x.sample?"":`<option value="${i}"${i===cur?" selected":""}>${esc(x.label)}</option>`).join("");
+  const tabs=$("tabs"); tabs.textContent="";
+  if(activeFile>=v.files.length)activeFile=Math.max(0,v.files.length-1);
+  v.files.forEach((f,i)=>{const b=document.createElement("button");b.className="tab";b.setAttribute("role","tab");b.setAttribute("aria-selected",String(i===activeFile&&!showPreview));
+    b.innerHTML=`${esc(f.name)}<span class="lc">${f.content.split("\n").length}</span>`;b.onclick=()=>{activeFile=i;showPreview=false;render()};tabs.append(b)});
+  const f=v.files[activeFile];
+  const isHtml=f&&/^html?$/.test(extOf(f.name))&&f.done;
+  if(isHtml){const b=document.createElement("button");b.className="tab";b.setAttribute("role","tab");b.setAttribute("aria-selected",String(showPreview));b.textContent="▶ Önizle";b.onclick=()=>{showPreview=true;render()};tabs.append(b)}
+  const tools=document.createElement("div");tools.className="tools";
+  if(f){tools.append(mkBtn("Kopyala",()=>copy(f.content)));if(f.done)tools.append(mkBtn("İndir",()=>download(f)))}
+  tabs.append(tools);
+  const vw=$("viewer"); vw.textContent="";
+  if(!f){vw.innerHTML=`<div class="empty">${streaming?"Plan yazılıyor, kod birazdan gelecek…":"Henüz dosya yok."}</div>`;return}
+  if(showPreview&&isHtml){const fr=document.createElement("iframe");fr.className="preview";fr.setAttribute("sandbox","allow-scripts allow-modals allow-forms");fr.srcdoc=f.content;vw.append(fr);return}
+  const pre=document.createElement("pre");pre.className="code";const code=document.createElement("code");
+  const lang=EXT_LANG[extOf(f.name)];
+  if(window.hljs&&lang&&hljs.getLanguage(lang)){try{code.innerHTML=hljs.highlight(f.content,{language:lang,ignoreIllegals:true}).value}catch{code.textContent=f.content}}
+  else code.textContent=f.content;
+  if(!f.done)code.classList.add("cursor");
+  pre.append(code);vw.append(pre);
+  if(!f.done)pre.scrollTop=pre.scrollHeight;
+}
+function mkBtn(t,fn){const b=document.createElement("button");b.className="btn small";b.type="button";b.textContent=t;b.onclick=fn;return b}
+async function copy(t){try{await navigator.clipboard.writeText(t);toast("Kopyalandı")}catch{const c=document.querySelector("pre.code code");if(c){const r=document.createRange();r.selectNodeContents(c);const s=getSelection();s.removeAllRanges();s.addRange(r)}toast("Seçildi, Ctrl+C ile kopyala")}}
+function download(f){const a=document.createElement("a");a.href=URL.createObjectURL(new Blob([f.content],{type:"text/plain;charset=utf-8"}));a.download=f.name.split("/").pop();document.body.append(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},500)}
+
+/* ---------- komutlar (prompt) ---------- */
+const langLine=()=>$("lang").value?`Hedef dil/teknoloji: ${$("lang").value}.`:"Dili isteğe göre sen seç; istekte bir dil geçiyorsa onu kullan.";
+const SYSTEM=()=>`Sen uzman bir yazılım mühendisisin. İstenen kodu ilk seferde çalışacak şekilde, eksiksiz ve temiz yazarsın.
+
+Cevabını TAM OLARAK şu sırayla ver:
+1. "Plan:" satırı ve altında 2-5 kısa madde.
+2. Her dosya için önce "Dosya: dosya_adi.uzanti" satırı, hemen altında dosyanın TAM kodu tek bir \`\`\` kod bloğu içinde.
+3. En sonda "Notlar:" satırı ve altında nasıl çalıştırılacağını anlatan 1-3 madde (gereken kurulum komutları dahil).
+
+Kurallar:
+- Kodda "...", "TODO" veya "buraya kod ekle" gibi eksik yer bırakma. Gereken bütün importları yaz.
+- Mümkünse tek dosya kullan. Web sayfası istenirse HTML, CSS ve JavaScript'i tek .html dosyasında topla.
+- Hataları ve uç durumları ele al, anlaşılır değişken adları kullan, kısa Türkçe yorumlar yaz.
+- Açıklamaları Türkçe yaz.
+- Başkalarına zarar vermek için kullanılacak kod (virüs, şifre çalma, izinsiz erişim) yazma.
+${langLine()}`;
+
+const REVIEW_SYSTEM=`Sen titiz bir kod inceleyicisin. Sana verilen kodu satır satır zihninde çalıştır. Şunları ara: sözdizimi hatası, eksik import, tanımlanmamış değişken, mantık hatası, çalışma zamanı hatası, istekte olup kodda eksik kalan özellik.
+
+Cevap biçimi:
+"İnceleme:" satırı ve altında bulduğun GERÇEK hataları kısa maddeler halinde yaz.
+Hata bulduysan, düzelttiğin her dosya için "Dosya: dosya_adi.uzanti" satırı ve altında dosyanın TAM düzeltilmiş kodunu tek bir \`\`\` kod bloğu içinde ver.
+Hata yoksa sadece "İnceleme:" ve altında "- Sorun bulunmadı." yaz, kod verme.
+Zevke dayalı değişiklik yapma. Türkçe yaz.`;
+
+/* ---------- WebLLM motoru ---------- */
+function modelLabel(id){return $("model").querySelector(`option[value="${id}"]`).textContent.split(" · ")[0]}
+async function ensureEngine(){
+  const id=$("model").value;
+  if(engine&&loadedModel===id)return engine;
+  if(!navigator.gpu)throw {user:"Bu tarayıcıda WebGPU yok, bu yüzden model çalışamaz.\nGüncel Google Chrome veya Microsoft Edge ile aç. Chrome'da chrome://gpu sayfasında \"WebGPU: Hardware accelerated\" yazmalı."};
+  if(!webllm){$("loadBox").hidden=false;$("loadTxt").textContent="WebLLM kütüphanesi yükleniyor…";webllm=await import(WEBLLM_URL)}
+  const appConfig={...webllm.prebuiltAppConfig, useIndexedDBCache: location.protocol==="file:"};
+  $("loadBox").hidden=false; $("loadBar").style.width="0%";
+  $("engineBadge").textContent="Yükleniyor…"; $("engineBadge").classList.remove("on");
+  const progress=r=>{$("loadBar").style.width=Math.round((r.progress||0)*100)+"%";$("loadTxt").textContent=tr(r.text||"")};
+  const chatOpts={context_window_size:8192};
+  if(engine){await engine.reload(id,chatOpts)}
+  else engine=await webllm.CreateMLCEngine(id,{appConfig,initProgressCallback:progress},chatOpts);
+  loadedModel=id;
+  $("loadBox").hidden=true;
+  $("engineBadge").textContent=modelLabel(id)+" hazır"; $("engineBadge").classList.add("on");
+  return engine;
+}
+function tr(t){return t.replace(/Fetching param cache/i,"Model indiriliyor").replace(/Loading model from cache/i,"Model önbellekten yükleniyor").replace(/Finish loading on WebGPU/i,"Ekran kartına yüklendi").replace(/secs elapsed/i,"sn geçti").replace(/MB fetched/i,"MB indi").replace(/It can take a while when we first visit this page to populate the cache\. Later refreshes will become faster\./i,"(İlk seferde uzun sürer, sonraki açılışlar hızlıdır.)")}
+
+async function generate(messages,onText){
+  const eng=await ensureEngine();
+  const isQwen3=/^Qwen3/.test(loadedModel);
+  const req={messages,stream:true,temperature:0.2,top_p:0.9,max_tokens:4000,stream_options:{include_usage:true}};
+  if(isQwen3)req.extra_body={enable_thinking:false};
+  const chunks=await eng.chat.completions.create(req);
+  let text="",speed=null,finish=null;
+  for await(const c of chunks){
+    const d=c.choices?.[0]?.delta?.content||"";
+    if(c.choices?.[0]?.finish_reason)finish=c.choices[0].finish_reason;
+    if(d){text+=d;onText(text)}
+    if(c.usage?.extra?.decode_tokens_per_s)speed=c.usage.extra.decode_tokens_per_s;
+  }
+  return {text,speed,truncated:finish==="length"};
+}
+
+/* ---------- ana akış ---------- */
+function setBusy(b){busy=b;$("runBtn").disabled=b;$("refineBtn").disabled=b;$("stopBtn").hidden=!b;$("model").disabled=b;$("prompt").readOnly=b}
+const titleFrom=r=>{const t=r.replace(/\s+/g," ").trim();return t.length>60?t.slice(0,57)+"…":t};
+
+async function run(kind){
+  if(busy)return;
+  const base=versions[cur];
+  let req,change,messages;
+  if(kind==="new"){
+    req=$("prompt").value.trim();
+    if(!req){$("prompt").focus();showMsg("Önce ne yazmamı istediğini yaz.",true);return}
+    messages=[{role:"system",content:SYSTEM()},{role:"user",content:req}];
+  }else{
+    change=$("refineIn").value.trim(); if(!change){$("refineIn").focus();return}
+    if(base.sample||!base.files.length){showMsg("Önce kendi kodunu ürettir, sonra değişiklik iste.",true);return}
+    req=base.prompt;
+    messages=[{role:"system",content:SYSTEM()},{role:"user",content:req},{role:"assistant",content:`Plan:\n${base.plan}\n\n${filesToText(base.files)}\n\nNotlar:\n${base.notes}`},
+      {role:"user",content:`Şu değişikliği yap: ${change}\nDeğişen ya da yeni eklenen her dosyanın TAM halini aynı biçimde (Dosya: satırı + kod bloğu) ver. Değişmeyen dosyaları yazma.`}];
+  }
+  showMsg(""); stopped=false; setBusy(true); streaming=true;
+  const doReview=$("selfReview").checked;
+  setStep("write","run","model hazırlanıyor…"); setStep("review",doReview?"idle":"skip",doReview?"":"kapalı");
+
+  const n=versions.filter(x=>!x.sample).length+1;
+  const v={label:`v${n} · ${kind==="new"?"ilk yazım":titleFrom(change).slice(0,28)}`,prompt:req,title:kind==="new"?titleFrom(req):base.title,plan:"",notes:"",review:"",fixed:false,files:kind==="new"?[]:base.files.map(f=>({...f}))};
+  versions=versions.filter(x=>!x.sample); versions.push(v); cur=versions.length-1; activeFile=0; showPreview=false;
+  const baseFiles=v.files.map(f=>({...f}));
+  render();
+  let safe=null;
+  try{
+    await ensureEngine();
+    setStep("write","run","yazıyor…");
+    const t0=performance.now();
+    const r=await generate(messages,text=>{
+      const p=parse(text); v.plan=p.plan; v.notes=p.notes;
+      v.files=mergeFiles(baseFiles,p.files);
+      const last=p.files[p.files.length-1]; if(last)activeFile=v.files.findIndex(f=>f.name===last.name);
+      render();
+    });
+    const p=parse(r.text);
+    v.plan=p.plan; v.notes=p.notes; v.files=mergeFiles(baseFiles,p.files).map(f=>({...f,done:true}));
+    if(stopped){setStep("write","skip","durduruldu");setStep("review","skip","");return finish()}
+    if(!p.files.length){
+      if(!v.plan)v.plan=r.text.trim();
+      setStep("write","err","kod yok");setStep("review","skip","");
+      showMsg("Model kod bloğu vermedi. İsteği daha açık yaz ya da daha büyük bir model seç.",true);return finish();
+    }
+    const secs=Math.round((performance.now()-t0)/1000);
+    setStep("write","done",`${p.files.length} dosya · ${secs} sn${r.speed?` · ${Math.round(r.speed)} tok/sn`:""}`);
+    if(r.truncated)showMsg("Cevap uzunluk sınırına takıldı, son dosya yarım kalmış olabilir. \"Değişiklik iste\" ile devamını yazdırabilir ya da isteği küçültebilirsin.",true);
+    activeFile=0; safe=v.files.map(f=>({...f})); render();
+
+    if(doReview&&!r.truncated){
+      setStep("review","run","inceliyor…");
+      const reviewMsgs=[{role:"system",content:REVIEW_SYSTEM},{role:"user",content:`İSTEK:\n${req}${change?`\nSon değişiklik: ${change}`:""}\n${langLine()}\n\nKOD:\n${filesToText(safe)}`}];
+      const r2=await generate(reviewMsgs,text=>{const q=parse(text);v.review=q.plan;render()});
+      if(stopped){setStep("review","skip","durduruldu");return finish()}
+      const q=parse(r2.text);
+      v.review=q.plan||"- İnceleme tamamlandı.";
+      // Sadece tam gelen ve orijinalden çok kısa olmayan düzeltmeleri kabul et
+      const good=q.files.filter(f=>{if(!f.done)return false;const o=safe.find(x=>x.name===f.name)||(safe.length===1?safe[0]:null);return o&&f.content.length>=o.content.length*0.6}).map(f=>{if(!safe.some(x=>x.name===f.name)&&safe.length===1)return {...f,name:safe[0].name};return f});
+      const changed=good.filter(f=>{const o=safe.find(x=>x.name===f.name);return o&&o.content.trim()!==f.content.trim()});
+      if(changed.length&&!r2.truncated){v.files=mergeFiles(safe,changed);v.fixed=true;setStep("review","done",`${changed.length} dosya düzeltildi`)}
+      else{v.files=safe;v.fixed=false;setStep("review","done",q.files.length&&!changed.length?"düzeltme uygulanmadı":"sorun yok")}
+    }
+    finish();
+  }catch(e){
+    console.error(e);
+    v.files=safe?safe:v.files.map(f=>({...f,done:true}));
+    const running=document.querySelector('.step[data-s="run"]');
+    if(running)setStep(running.dataset.k,"err","hata");
+    $("loadBox").hidden=true;
+    const s=String(e&&(e.message||e));
+    let t=e&&e.user;
+    if(!t&&/out of memory|OOM|allocate|device lost|DeviceLost/i.test(s))t="Ekran kartının belleği yetmedi. Daha küçük bir model seç (1.5B ya da 3B) ve diğer sekmeleri kapat.";
+    if(!t&&/fetch|network|Failed to fetch|NetworkError/i.test(s))t="Model indirilemedi. İnternet bağlantını kontrol et. Sorun sürerse dosyayı yerel sunucuyla aç:\npython -m http.server 8000\nsonra tarayıcıda http://localhost:8000/kod-ustasi.html";
+    if(!t&&/cache|Cache|SecurityError|QuotaExceeded/i.test(s))t="Tarayıcı modeli kaydedemedi (yer yok ya da dosya olarak açıldı). Diskte birkaç GB boş yer aç veya şöyle aç:\npython -m http.server 8000\nsonra http://localhost:8000/kod-ustasi.html";
+    showMsg(t||("Bir hata oldu: "+s.slice(0,240)),true);
+    if(!loadedModel){$("engineBadge").textContent="Model yüklenmedi";engine=null}
+    finish();
+  }
+  function finish(){streaming=false;setBusy(false);if(kind!=="new"&&!stopped)$("refineIn").value="";render()}
+}
+
+/* ---------- bağlantılar ---------- */
+EXAMPLES.forEach(([t,p])=>{const b=document.createElement("button");b.type="button";b.className="chip";b.textContent=t;b.onclick=()=>{$("prompt").value=p;saveDraft();$("prompt").focus()};$("examples").append(b)});
+$("runBtn").onclick=()=>run("new");
+$("refineBtn").onclick=()=>run("refine");
+$("stopBtn").onclick=()=>{stopped=true;try{engine&&engine.interruptGenerate()}catch{}};
+$("prompt").addEventListener("keydown",e=>{if((e.ctrlKey||e.metaKey)&&e.key==="Enter"){e.preventDefault();run("new")}});
+$("refineIn").addEventListener("keydown",e=>{if(e.key==="Enter"){e.preventDefault();run("refine")}});
+$("versions").onchange=e=>{cur=Number(e.target.value);activeFile=0;showPreview=false;render()};
+$("model").onchange=()=>{try{localStorage.setItem("ku-model",$("model").value)}catch{};if(loadedModel&&loadedModel!==$("model").value){$("engineBadge").textContent="Model değişecek";$("engineBadge").classList.remove("on")}};
+function saveDraft(){try{localStorage.setItem("ku-draft",$("prompt").value)}catch{}}
+$("prompt").addEventListener("input",saveDraft);
+try{const d=localStorage.getItem("ku-draft");if(d)$("prompt").value=d;const m=localStorage.getItem("ku-model");if(m&&$("model").querySelector(`option[value="${m}"]`))$("model").value=m}catch{}
+if(!navigator.gpu)showMsg("Bu tarayıcıda WebGPU yok. Model çalışması için güncel Chrome veya Edge kullan.",true);
+render();
+</script>
+</body>
+</html>
